@@ -226,7 +226,7 @@ index ee906b594b306906c170180a29a8b61997d05168..7e348fcb813707fee830082b826932e0
          if (this.closed) {
              this.pollTasks(true); // this ensures we've emptied the queue
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 142afe770fb2109378bde06130c31131ab16bee3..b23e050867022ccd59b19272f70c8bdeb6f4d21d 100644
+index b38aca82cbfdea48251b3e20e0b1d7cc1a8aa5ec..77d8c85a1305ce17220772ff2e191ea341af5e75 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -837,7 +837,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -283,10 +283,10 @@ index 8849336437d91022cc33c704059d8b075882bbf3..f5e8bbd257578f87af0b2247d52303db
                  this.world, chunkcoordintpair.x, chunkcoordintpair.z, nbttagcompound, null,
                  com.destroystokyo.paper.io.PrioritizedTaskQueue.NORMAL_PRIORITY); // Tuinity - writes are async, no need for priority
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index c5546e46143d7713e379e0bd4a6652b863dd9854..f8d574218ef97edfd62a0aa8f8c008c2d60b9cf4 100644
+index 4d19162218bd1dcc00f2cca3a4eda83dad1b9d04..fa16608b24cd68e4195e72143d39db38702dba40 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-@@ -301,4 +301,10 @@ public class YatopiaConfig {
+@@ -285,4 +285,10 @@ public class YatopiaConfig {
          worldGenExecutorSize = getInt("settings.threads.worldgen", -1);
          Preconditions.checkArgument(worldGenExecutorSize == -1 || worldGenExecutorSize > 0, "Invalid settings.threads.worldgen in yatopia.yml");
      }

@@ -132,8 +132,6 @@ This is an overview over all patches that are currently used.
 | server |  Delay chunk unloads      | Spottedleaf |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
 | server |  Detail more information in watchdog dumps      | Spottedleaf |  |
-| server |  Detailed lag and crash reports      | ishland |  |
-| api |  Detailed lag and crash reports      | ishland |  |
 | server |  Disable loot drops on death by cramming      | William Blake Galbreath |  |
 | server |  Disable outdated build check      | William Blake Galbreath |  |
 | api |  Disable reload command      | Ivan Pekov |  |
@@ -244,10 +242,9 @@ This is an overview over all patches that are currently used.
 | server |  Multi-Threaded ticking CraftBukkit      | Spottedleaf |  |
 | server |  Multi-threaded RegionFile IO      | ishland |  |
 | server |  Name craft scheduler threads according to the plugin using      | Spottedleaf |  |
-| server |  New nbt cache      | Hugo Planque |  |
+| server |  New nbt cache      | Hugo Planque | ishland |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
-| server |  OpenCL base      | ishland |  |
 | server |  Optimise EntityInsentient#checkDespawn      | Spottedleaf |  |
 | server |  Optimise WorldServer#notify      | Spottedleaf |  |
 | server |  Optimise chunk tick iteration      | Spottedleaf |  |
@@ -345,6 +342,8 @@ This is an overview over all patches that are currently used.
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Striders give saddle back      | Ben Kerllenevich |  |
 | server |  Strip raytracing for EntityLiving#hasLineOfSight      | Paul Sauve |  |
+| server |  Suspected plugins report      | ishland |  |
+| api |  Suspected plugins report      | ishland |  |
 | server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
 | server |  Threaded WorldGen      | ishland |  |
 | server |  Time scoreboard search      | Spottedleaf |  |
@@ -370,7 +369,6 @@ This is an overview over all patches that are currently used.
 | server |  Zombie break door minimum difficulty option      | BillyGalbreath |  |
 | server |  Zombie horse naturally spawn      | William Blake Galbreath |  |
 | server |  add config for logging login location      | Simon Gardling |  |
-| server |  add config for sand duping      | Simon Gardling |  |
 | server |  dont load chunks for physics      | Aikar |  |
 | server |  lithium DataTrackerMixin      | JellySquid | tr7zw |
 | server |  lithium HashedList      | JellySquid |  |

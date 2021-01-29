@@ -150,7 +150,7 @@ private fun Project.configureServerProject() {
                     "Implementation-Version" to toothpick.forkVersion,
                     "Implementation-Vendor" to SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(Date()),
                     "Specification-Title" to "Bukkit",
-                    "Specification-Version" to "${project.version}",
+                    "Specification-Version" to "${project.rootProject.toothpick.minecraftVersion}-${project.rootProject.toothpick.nmsRevision}",
                     "Specification-Vendor" to "Bukkit Team"
             )
         }
@@ -200,9 +200,8 @@ private fun Project.configureServerProject() {
 
     extensions.configure<PublishingExtension> {
         publications {
-            getByName<MavenPublication>("mavenJava") {
-                artifactId = rootProject.name
-                artifact(tasks["shadowJar"])
+            create<MavenPublication>("shadow") {
+                artifact(project.tasks.named("shadowJar"))
             }
         }
     }
@@ -213,7 +212,7 @@ private fun Project.configureApiProject() {
     val jar by this.tasks.getting(Jar::class) {
         doFirst {
             buildDir.resolve("tmp/pom.properties")
-                    .writeText("version=${project.version}")
+                    .writeText("version=${project.rootProject.toothpick.minecraftVersion}-${project.rootProject.toothpick.nmsRevision}")
         }
         from(buildDir.resolve("tmp/pom.properties")) {
             into("META-INF/maven/${project.group}/${project.name}")
