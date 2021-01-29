@@ -78,10 +78,6 @@ jobs:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
-    - name: Setup opencl
-      run: |
-          sudo apt update
-          sudo apt install libpocl2
     - name: Build Yatopia
       run: |
         ./gradlew yatoclip
