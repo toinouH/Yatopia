@@ -1,0 +1,139 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Sun, 31 Jan 2021 23:12:23 +0800
+Subject: [PATCH] fixup! Threaded WorldGen
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/io/chunk/ChunkTaskManager.java b/src/main/java/com/destroystokyo/paper/io/chunk/ChunkTaskManager.java
+index bcb7ce2692c5bc1a6214c3a384949666107864fb..b34e4237ca14965794d7f364f278e51b6758fb6a 100644
+--- a/src/main/java/com/destroystokyo/paper/io/chunk/ChunkTaskManager.java
++++ b/src/main/java/com/destroystokyo/paper/io/chunk/ChunkTaskManager.java
+@@ -65,6 +65,20 @@ public final class ChunkTaskManager {
+         public String toString() {
+             return "[( " + this.chunkX + "," + this.chunkZ + ") in '" + this.world.getWorld().getName() + "']";
+         }
++        // Yatopia start
++        @Override
++        public boolean equals(Object o) {
++            if (this == o) return true;
++            if (o == null || getClass() != o.getClass()) return false;
++            ChunkInfo chunkInfo = (ChunkInfo) o;
++            return chunkX == chunkInfo.chunkX && chunkZ == chunkInfo.chunkZ && java.util.Objects.equals(world, chunkInfo.world);
++        }
++
++        @Override
++        public int hashCode() {
++            return java.util.Objects.hash(chunkX, chunkZ, world);
++        }
++        // Yatopia end
+     }
+ 
+     public static void pushChunkWait(final WorldServer world, final int chunkX, final int chunkZ) {
+@@ -78,7 +92,13 @@ public final class ChunkTaskManager {
+             WAITING_CHUNKS.pop();
+         }
+     }
+-
++    // Yatopia start
++    public static boolean hasChunkWait(final WorldServer world, final int chunkX, final int chunkZ) {
++        synchronized (WAITING_CHUNKS) {
++            return WAITING_CHUNKS.contains(new ChunkInfo(chunkX, chunkZ, world));
++        }
++    }
++    // Yatopia end
+     private static ChunkInfo[] getChunkInfos() {
+         ChunkInfo[] chunks;
+         synchronized (WAITING_CHUNKS) {
+diff --git a/src/main/java/net/minecraft/server/ChunkStatus.java b/src/main/java/net/minecraft/server/ChunkStatus.java
+index eee9e29392a0bde2cae02f26a05cfda7416c4c68..d55087b04182e2187d1265db4a1508700ee1b9ac 100644
+--- a/src/main/java/net/minecraft/server/ChunkStatus.java
++++ b/src/main/java/net/minecraft/server/ChunkStatus.java
+@@ -10,7 +10,7 @@ import java.util.EnumSet;
+ import java.util.List;
+ import java.util.concurrent.CompletableFuture;
+ // Yatopia start
+-import java.util.concurrent.LinkedBlockingQueue;
++import java.util.concurrent.PriorityBlockingQueue;
+ import java.util.concurrent.ThreadPoolExecutor;
+ import java.util.concurrent.TimeUnit;
+ // Yatopia end
+@@ -25,7 +25,7 @@ public class ChunkStatus {
+             org.yatopiamc.yatopia.server.YatopiaConfig.featureGenExecutorSize == -1 ? Math.min(Runtime.getRuntime().availableProcessors(), 3) : org.yatopiamc.yatopia.server.YatopiaConfig.featureGenExecutorSize,
+             0,
+             TimeUnit.SECONDS,
+-            new LinkedBlockingQueue<>(),
++            new PriorityBlockingQueue<>(),
+             new com.google.common.util.concurrent.ThreadFactoryBuilder().setDaemon(true).setNameFormat("Yatopia Async Chunks FeatureGen Worker #%d").build()
+     );
+     private static final ThreadPoolExecutor worldGenExecutor = new ThreadPoolExecutor(
+@@ -33,7 +33,7 @@ public class ChunkStatus {
+             org.yatopiamc.yatopia.server.YatopiaConfig.worldGenExecutorSize == -1 ? Math.min(Runtime.getRuntime().availableProcessors(), 8) : org.yatopiamc.yatopia.server.YatopiaConfig.worldGenExecutorSize,
+             0,
+             TimeUnit.SECONDS,
+-            new LinkedBlockingQueue<>(),
++            new PriorityBlockingQueue<>(),
+             new com.google.common.util.concurrent.ThreadFactoryBuilder().setDaemon(true).setNameFormat("Yatopia Async Chunks WorldGen Worker #%d").build()
+     );
+ 
+@@ -79,7 +79,7 @@ public class ChunkStatus {
+             }
+         }
+         return Either.left(ichunkaccess);
+-        }, worldGenExecutor);
++        }, command -> worldGenExecutor.execute(new org.yatopiamc.yatopia.server.executors.PrioritizedRunnable(() -> com.destroystokyo.paper.io.chunk.ChunkTaskManager.hasChunkWait(worldserver, ichunkaccess.getPos().x, ichunkaccess.getPos().z) ? Integer.MIN_VALUE : 0, command)));
+         // Yatopia end
+     });
+     public static final ChunkStatus STRUCTURE_REFERENCES = a("structure_references", ChunkStatus.STRUCTURE_STARTS, 8, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (worldserver, chunkgenerator, list, ichunkaccess) -> {
+@@ -123,7 +123,7 @@ public class ChunkStatus {
+         }
+ 
+         return CompletableFuture.completedFuture(Either.left(ichunkaccess));
+-        }, featureGenExecutor);
++        }, command -> featureGenExecutor.execute(new org.yatopiamc.yatopia.server.executors.PrioritizedRunnable(() -> com.destroystokyo.paper.io.chunk.ChunkTaskManager.hasChunkWait(worldserver, ichunkaccess.getPos().x, ichunkaccess.getPos().z) ? Integer.MIN_VALUE : 0, command)));
+         // Yatopia end
+     });
+     public static final ChunkStatus LIGHT = a("light", ChunkStatus.FEATURES, 1, ChunkStatus.o, ChunkStatus.Type.PROTOCHUNK, (chunkstatus, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, ichunkaccess) -> {
+@@ -306,7 +306,7 @@ public class ChunkStatus {
+                 }
+             }
+             return Either.left(ichunkaccess);
+-            }, worldGenExecutor);
++            }, command -> worldGenExecutor.execute(new org.yatopiamc.yatopia.server.executors.PrioritizedRunnable(() -> com.destroystokyo.paper.io.chunk.ChunkTaskManager.hasChunkWait(worldserver, ichunkaccess.getPos().x, ichunkaccess.getPos().z) ? Integer.MIN_VALUE : 0, command)));
+ 
+             // Yatopia end
+         }
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/executors/PrioritizedRunnable.java b/src/main/java/org/yatopiamc/yatopia/server/executors/PrioritizedRunnable.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..51dff59bbd9057c4cb249349cd8bb22a8267c237
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/executors/PrioritizedRunnable.java
+@@ -0,0 +1,29 @@
++package org.yatopiamc.yatopia.server.executors;
++
++import javax.annotation.Nonnull;
++import java.util.function.Supplier;
++
++public class PrioritizedRunnable implements Runnable, Comparable<PrioritizedRunnable> {
++
++    private final Supplier<Integer> prioritySupplier;
++    private final Runnable runnable;
++
++    public PrioritizedRunnable(Supplier<Integer> prioritySupplier, Runnable runnable) {
++        this.prioritySupplier = prioritySupplier;
++        this.runnable = runnable;
++    }
++
++    @Override
++    public int compareTo(@Nonnull PrioritizedRunnable o) {
++        return Integer.compare(this.getPriority(), o.getPriority());
++    }
++
++    public int getPriority() {
++        return prioritySupplier.get();
++    }
++
++    @Override
++    public void run() {
++        runnable.run();
++    }
++}
