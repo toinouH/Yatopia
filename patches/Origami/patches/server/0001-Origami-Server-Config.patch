@@ -129,7 +129,7 @@ index 0000000000000000000000000000000000000000..fe7330fabe386966c2d203a190a00a78
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index f2512fd66849cfa743cf7bfdffcb4c26178ffebf..b47bc7cadd34f4592605c1ecfdfcb33e2d580034 100644
+index b6246b017db3483f6950c6b9ce5985abd98c7046..1f9564ffc6e0ebe71f09cc7375bfe951eef81043 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -97,6 +97,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {

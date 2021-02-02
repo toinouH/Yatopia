@@ -33,7 +33,7 @@ index bba343542e7e6fa83ec802d97b4c139bb210ab28..d9f9e2235d091e14e5d34bb9a3273e7f
              int experience = this.getRandom().nextInt(7) + 1;
              org.bukkit.event.entity.EntityBreedEvent entityBreedEvent = org.bukkit.craftbukkit.event.CraftEventFactory.callEntityBreedEvent(entityageable, this, entityanimal, entityplayer, this.breedItem, experience);
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index aa1b037c0103552761b81318f1d2ad8215bd0370..91aa8a2bc111ee6935ada0ae471fe1a3bc8fad80 100644
+index 972d1e61b9a574f0f80b648b9360a9bc12f3b33b..171a1a0b39b17cb997016f2b06349100cf5ad7ab 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -104,6 +104,48 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
