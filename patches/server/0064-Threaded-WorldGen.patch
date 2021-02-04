@@ -128,7 +128,7 @@ index 6320a4175f8d65ef3f633319a6392f05d472e621..d809f73ea5b81d6b389457c8ad7eb03b
          if (chunkMapDistance.delayDistanceManagerTick) return false; // Paper
          if (this.playerChunkMap.unloadingPlayerChunk) { MinecraftServer.LOGGER.fatal("Cannot tick distance manager while unloading playerchunks", new Throwable()); throw new IllegalStateException("Cannot tick distance manager while unloading playerchunks"); } // Tuinity
 diff --git a/src/main/java/net/minecraft/server/ChunkStatus.java b/src/main/java/net/minecraft/server/ChunkStatus.java
-index 51ea295d66312c95685b9fe4ee502a029d2fff20..d55087b04182e2187d1265db4a1508700ee1b9ac 100644
+index 51ea295d66312c95685b9fe4ee502a029d2fff20..9db252b1ae864e00673bbb154539f244260f07ce 100644
 --- a/src/main/java/net/minecraft/server/ChunkStatus.java
 +++ b/src/main/java/net/minecraft/server/ChunkStatus.java
 @@ -9,11 +9,52 @@ import java.util.Collections;
@@ -184,24 +184,28 @@ index 51ea295d66312c95685b9fe4ee502a029d2fff20..d55087b04182e2187d1265db4a150870
      private static final EnumSet<HeightMap.Type> n = EnumSet.of(HeightMap.Type.OCEAN_FLOOR_WG, HeightMap.Type.WORLD_SURFACE_WG);
      private static final EnumSet<HeightMap.Type> o = EnumSet.of(HeightMap.Type.OCEAN_FLOOR, HeightMap.Type.WORLD_SURFACE, HeightMap.Type.MOTION_BLOCKING, HeightMap.Type.MOTION_BLOCKING_NO_LEAVES);
      private static final ChunkStatus.c p = (chunkstatus, worldserver, definedstructuremanager, lightenginethreaded, function, ichunkaccess) -> {
-@@ -26,6 +67,8 @@ public class ChunkStatus {
+@@ -26,17 +67,20 @@ public class ChunkStatus {
      public static final ChunkStatus EMPTY = a("empty", (ChunkStatus) null, -1, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (worldserver, chunkgenerator, list, ichunkaccess) -> {
      });
      public static final ChunkStatus STRUCTURE_STARTS = a("structure_starts", ChunkStatus.EMPTY, 0, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (chunkstatus, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, ichunkaccess) -> {
-+        // Yatopia start - threaded WorldGen
-+        return CompletableFuture.supplyAsync(() -> {
++        CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> result = CompletableFuture.completedFuture(Either.left(ichunkaccess));
          if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
              if (worldserver.worldDataServer.getGeneratorSettings().shouldGenerateMapFeatures()) { // CraftBukkit
-                 chunkgenerator.createStructures(worldserver.r(), worldserver.getStructureManager(), ichunkaccess, definedstructuremanager, worldserver.getSeed());
-@@ -35,8 +78,9 @@ public class ChunkStatus {
-                 ((ProtoChunk) ichunkaccess).a(chunkstatus);
+-                chunkgenerator.createStructures(worldserver.r(), worldserver.getStructureManager(), ichunkaccess, definedstructuremanager, worldserver.getSeed());
++                result = CompletableFuture.supplyAsync(() -> {
++                    chunkgenerator.createStructures(worldserver.r(), worldserver.getStructureManager(), ichunkaccess, definedstructuremanager, worldserver.getSeed());
++                    return Either.left(ichunkaccess);
++                }, command -> worldGenExecutor.execute(new org.yatopiamc.yatopia.server.executors.PrioritizedRunnable(() -> com.destroystokyo.paper.io.chunk.ChunkTaskManager.hasChunkWait(worldserver, ichunkaccess.getPos().x, ichunkaccess.getPos().z) ? Integer.MIN_VALUE : 0, command)));
+             }
+-
+             if (ichunkaccess instanceof ProtoChunk) {
+-                ((ProtoChunk) ichunkaccess).a(chunkstatus);
++                result.thenRun(() -> ((ProtoChunk) ichunkaccess).a(chunkstatus));
              }
          }
--
+ 
 -        return CompletableFuture.completedFuture(Either.left(ichunkaccess));
-+        return Either.left(ichunkaccess);
-+        }, command -> worldGenExecutor.execute(new org.yatopiamc.yatopia.server.executors.PrioritizedRunnable(() -> com.destroystokyo.paper.io.chunk.ChunkTaskManager.hasChunkWait(worldserver, ichunkaccess.getPos().x, ichunkaccess.getPos().z) ? Integer.MIN_VALUE : 0, command)));
-+        // Yatopia end
++        return result;
      });
      public static final ChunkStatus STRUCTURE_REFERENCES = a("structure_references", ChunkStatus.STRUCTURE_STARTS, 8, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (worldserver, chunkgenerator, list, ichunkaccess) -> {
          RegionLimitedWorldAccess regionlimitedworldaccess = new RegionLimitedWorldAccess(worldserver, list);
