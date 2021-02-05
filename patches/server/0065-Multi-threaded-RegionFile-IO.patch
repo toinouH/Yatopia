@@ -5,7 +5,7 @@ Subject: [PATCH] Multi-threaded RegionFile IO
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
-index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..69ac57ea55c3199435ebd8dd4f01d70369d99472 100644
+index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..539e1679379c42ebfa71513d450f765ef9012d9c 100644
 --- a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
 +++ b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
 @@ -35,7 +35,7 @@ import java.util.function.Function;
@@ -113,12 +113,12 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..69ac57ea55c3199435ebd8dd4f01d703
      }
  
 +    // Yatopia start
-+    static final class RegionFileCoord {
++    public static final class RegionFileCoord {
 +
 +        public final int x;
 +        public final int z;
 +
-+        RegionFileCoord(int x, int z) {
++        public RegionFileCoord(int x, int z) {
 +            this.x = x;
 +            this.z = z;
 +        }
