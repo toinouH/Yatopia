@@ -253,6 +253,19 @@ index 51ea295d66312c95685b9fe4ee502a029d2fff20..9db252b1ae864e00673bbb154539f244
          }
  
          void doWork(WorldServer worldserver, ChunkGenerator chunkgenerator, List<IChunkAccess> list, IChunkAccess ichunkaccess);
+diff --git a/src/main/java/net/minecraft/server/DefinedStructure.java b/src/main/java/net/minecraft/server/DefinedStructure.java
+index 8974d7944f159b9346680c639daf0f8c06767cfe..ef70d0689f84d34c8dd77d5e64335473925b838a 100644
+--- a/src/main/java/net/minecraft/server/DefinedStructure.java
++++ b/src/main/java/net/minecraft/server/DefinedStructure.java
+@@ -801,7 +801,7 @@ public class DefinedStructure {
+         private final Map<Block, List<DefinedStructure.BlockInfo>> b;
+ 
+         private a(List<DefinedStructure.BlockInfo> list) {
+-            this.b = Maps.newHashMap();
++            this.b = new java.util.concurrent.ConcurrentHashMap<>(); // Yatopia
+             this.a = list;
+         }
+ 
 diff --git a/src/main/java/net/minecraft/server/GenLayers.java b/src/main/java/net/minecraft/server/GenLayers.java
 index 7abf0e4b7e96dd367b9d03cbc62ac7bb03542d0a..76a76c26650bca73828d7893a537a0235f573e20 100644
 --- a/src/main/java/net/minecraft/server/GenLayers.java
