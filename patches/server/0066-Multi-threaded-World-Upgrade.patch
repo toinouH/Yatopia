@@ -42,14 +42,15 @@ index 1c6dbd29c8414b3e33aedcc50bee5b5d9ce134d1..5c0d59ce08e6fcb7f2158f4fe0b88310
              if (!booleansupplier.getAsBoolean()) {
                  worldupgrader.a();
 diff --git a/src/main/java/net/minecraft/server/WorldUpgrader.java b/src/main/java/net/minecraft/server/WorldUpgrader.java
-index 888dae2d5ee8a71e83dd24e5f3c6bc8513016f9d..af75bb605ae2de7c154a2de798c5c3026fc567d7 100644
+index 888dae2d5ee8a71e83dd24e5f3c6bc8513016f9d..85c142bbdc0e9b93cad73ab44acb5790e52834af 100644
 --- a/src/main/java/net/minecraft/server/WorldUpgrader.java
 +++ b/src/main/java/net/minecraft/server/WorldUpgrader.java
-@@ -20,11 +20,23 @@ import java.util.regex.Matcher;
+@@ -20,11 +20,24 @@ import java.util.regex.Matcher;
  import java.util.regex.Pattern;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
 +// Yatopia start
++import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 +import com.destroystokyo.paper.io.PaperFileIOThread;
 +import com.ibm.asyncutil.locks.AsyncNamedLock;
 +import java.util.Arrays;
@@ -69,7 +70,7 @@ index 888dae2d5ee8a71e83dd24e5f3c6bc8513016f9d..af75bb605ae2de7c154a2de798c5c302
      private final ImmutableSet<ResourceKey<DimensionManager>> c; // CraftBukkit
      private final boolean d;
      private final Convertable.ConversionSession e;
-@@ -33,9 +45,9 @@ public class WorldUpgrader {
+@@ -33,9 +46,9 @@ public class WorldUpgrader {
      private volatile boolean h = true;
      private volatile boolean i;
      private volatile float j;
@@ -82,12 +83,12 @@ index 888dae2d5ee8a71e83dd24e5f3c6bc8513016f9d..af75bb605ae2de7c154a2de798c5c302
      private final Object2FloatMap<ResourceKey<DimensionManager>> n = Object2FloatMaps.synchronize(new Object2FloatOpenCustomHashMap(SystemUtils.k())); // CraftBukkit
      private volatile IChatBaseComponent o = new ChatMessage("optimizeWorld.stage.counting");
      private static final Pattern p = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
-@@ -100,6 +112,14 @@ public class WorldUpgrader {
+@@ -100,6 +113,14 @@ public class WorldUpgrader {
  
              this.o = new ChatMessage("optimizeWorld.stage.upgrading");
  
 +            // Yatopia start
-+            Set<CompletableFuture<Void>> futures = new it.unimi.dsi.fastutil.objects.ObjectOpenHashSet<>();
++            Set<CompletableFuture<Void>> futures = new ObjectOpenHashSet<>();
 +            ExecutorService IOExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new ThreadFactoryBuilder().setNameFormat("WorldUpgrade IO #%d").setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1).build());
 +            ExecutorService mainExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new ThreadFactoryBuilder().setNameFormat("WorldUpgrade Worker #%d").setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1).build());
 +            ExecutorService countingExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("WorldUpgrade Counter").setDaemon(true).setPriority(Thread.MIN_PRIORITY).build());
@@ -97,7 +98,7 @@ index 888dae2d5ee8a71e83dd24e5f3c6bc8513016f9d..af75bb605ae2de7c154a2de798c5c302
              while (this.h) {
                  boolean flag = false;
                  float f1 = 0.0F;
-@@ -112,17 +132,33 @@ public class WorldUpgrader {
+@@ -112,17 +133,33 @@ public class WorldUpgrader {
                      IChunkLoader ichunkloader = (IChunkLoader) immutablemap1.get(resourcekey2);
  
                      if (listiterator.hasNext()) {
@@ -137,7 +138,7 @@ index 888dae2d5ee8a71e83dd24e5f3c6bc8513016f9d..af75bb605ae2de7c154a2de798c5c302
                                  NBTTagCompound nbttagcompound2 = nbttagcompound1.getCompound("Level");
                                  ChunkCoordIntPair chunkcoordintpair1 = new ChunkCoordIntPair(nbttagcompound2.getInt("xPos"), nbttagcompound2.getInt("zPos"));
  
-@@ -140,28 +176,43 @@ public class WorldUpgrader {
+@@ -140,28 +177,43 @@ public class WorldUpgrader {
                                  }
  
                                  if (flag2) {
@@ -196,7 +197,7 @@ index 888dae2d5ee8a71e83dd24e5f3c6bc8513016f9d..af75bb605ae2de7c154a2de798c5c302
                          flag = true;
                      }
  
-@@ -175,7 +226,22 @@ public class WorldUpgrader {
+@@ -175,7 +227,22 @@ public class WorldUpgrader {
                  }
              }
  
@@ -219,7 +220,7 @@ index 888dae2d5ee8a71e83dd24e5f3c6bc8513016f9d..af75bb605ae2de7c154a2de798c5c302
              UnmodifiableIterator unmodifiableiterator3 = immutablemap1.values().iterator();
  
              while (unmodifiableiterator3.hasNext()) {
-@@ -192,6 +258,7 @@ public class WorldUpgrader {
+@@ -192,6 +259,7 @@ public class WorldUpgrader {
              i = SystemUtils.getMonotonicMillis() - i;
              WorldUpgrader.LOGGER.info("World optimizaton finished after {} ms", i);
              this.i = true;
@@ -227,7 +228,7 @@ index 888dae2d5ee8a71e83dd24e5f3c6bc8513016f9d..af75bb605ae2de7c154a2de798c5c302
          }
      }
  
-@@ -263,16 +330,19 @@ public class WorldUpgrader {
+@@ -263,16 +331,19 @@ public class WorldUpgrader {
      }
  
      public int e() {
