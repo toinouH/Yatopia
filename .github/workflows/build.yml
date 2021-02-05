@@ -13,6 +13,7 @@ on:
       - ver/1.16.1
       - leaflight/ver/1.16.4
       - leaflight/ver/1.16.5
+      - dev/threaded-worldgen
   pull_request:
     paths-ignore:
       - '*.md'
