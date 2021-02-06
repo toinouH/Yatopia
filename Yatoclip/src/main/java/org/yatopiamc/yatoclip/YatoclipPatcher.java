@@ -25,8 +25,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import java.util.zip.Deflater;
+import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -54,17 +55,62 @@ public class YatoclipPatcher {
 		requireNonNull(patchedJar);
 		if (!patchedJar.toFile().isFile()) return false;
 		try {
-			MessageDigest digest = MessageDigest.getInstance("SHA-256");
-			try (ZipFile patchedZip = new ZipFile(patchedJar.toFile())) {
-				for (PatchesMetadata.PatchMetadata patchMetadata : patchesMetadata.patches) {
-					ZipEntry zipEntry = patchedZip.getEntry(patchMetadata.name);
-					if (zipEntry == null || !patchMetadata.targetHash.equals(ServerSetup.toHex(digest.digest(IOUtils.toByteArray(patchedZip.getInputStream(zipEntry))))))
+			final ThreadLocal<ZipFile> patchedZip = ThreadLocal.withInitial(() -> {
+				try {
+					return new ZipFile(patchedJar.toFile());
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			});
+			final ThreadLocal<MessageDigest> digest = ThreadLocal.withInitial(() -> {
+				try {
+					return MessageDigest.getInstance("SHA-256");
+				} catch (NoSuchAlgorithmException e) {
+					throw new RuntimeException(e);
+				}
+			});
+			ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new ThreadFactory() {
+				private AtomicInteger serial = new AtomicInteger(0);
+
+				@Override
+				public Thread newThread(Runnable r) {
+					Thread thread = new Thread(() -> {
+						try {
+							r.run();
+						} finally {
+							try {
+								patchedZip.get().close();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
+					});
+					thread.setName("YatoClip Worker #" + serial.incrementAndGet());
+					thread.setDaemon(true);
+					return thread;
+				}
+			});
+			try {
+				for (CompletableFuture<Boolean> future : patchesMetadata.patches.stream().map(patchMetadata -> CompletableFuture.supplyAsync(() -> {
+					ZipEntry zipEntry = patchedZip.get().getEntry(patchMetadata.name);
+					try {
+						if (zipEntry == null) return false;
+						try (final InputStream inputStream = patchedZip.get().getInputStream(zipEntry)) {
+							return (patchMetadata.targetHash.equals(ServerSetup.toHex(digest.get().digest(IOUtils.toByteArray(inputStream)))));
+						}
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				}, executorService)).collect(Collectors.toSet())) {
+					if (!future.join())
 						return false;
 				}
+			} finally {
+				executorService.shutdown();
 			}
 			return true;
 		} catch (Throwable t) {
-			System.out.println(t.toString());
+			System.err.println(t.toString());
 			return false;
 		}
 	}
@@ -119,12 +165,16 @@ public class YatoclipPatcher {
 					}
 				}, executorService), metadata)).collect(Collectors.toSet());
 				try (ZipOutputStream patchedZip = new ZipOutputStream(new FileOutputStream(patchedJar.toFile()))) {
-					patchedZip.setMethod(ZipOutputStream.DEFLATED);
-					patchedZip.setLevel(Deflater.BEST_SPEED);
+					patchedZip.setMethod(ZipOutputStream.STORED);
 					Set<String> processed = new HashSet<>();
 					for (PatchData patchData : patchDataSet) {
-						putNextEntrySafe(patchedZip, patchData.metadata.name);
 						final byte[] patchedBytes = patchData.patchedBytesFuture.join();
+						putParentEntries(patchedZip, patchData.metadata.name);
+						final ZipEntry zipEntry = new ZipEntry(patchData.metadata.name);
+						zipEntry.setSize(patchedBytes.length);
+						zipEntry.setCompressedSize(patchedBytes.length);
+						zipEntry.setCrc(patchData.crc32Value.get());
+						patchedZip.putNextEntry(zipEntry);
 						patchedZip.write(patchedBytes);
 						patchedZip.closeEntry();
 						processed.add(patchData.metadata.name);
@@ -135,8 +185,16 @@ public class YatoclipPatcher {
 							return;
 						try {
 							InputStream in = classMappedZip.get().getInputStream(zipEntry);
-							putNextEntrySafe(patchedZip, zipEntry.getName());
-							patchedZip.write(IOUtils.toByteArray(in));
+							final byte[] bytes = IOUtils.toByteArray(in);
+							putParentEntries(patchedZip, zipEntry.getName());
+							final ZipEntry zipEntry1 = new ZipEntry(zipEntry.getName());
+							zipEntry1.setSize(bytes.length);
+							zipEntry1.setCompressedSize(bytes.length);
+							final CRC32 crc32 = new CRC32();
+							crc32.update(bytes, 0, bytes.length);
+							zipEntry1.setCrc(crc32.getValue());
+							patchedZip.putNextEntry(zipEntry1);
+							patchedZip.write(bytes);
 							patchedZip.closeEntry();
 						} catch (Throwable t) {
 							throw new RuntimeException(t);
@@ -177,22 +235,25 @@ public class YatoclipPatcher {
 		return patchedBytes;
 	}
 
-	private static void putNextEntrySafe(ZipOutputStream patchedZip, String name) throws IOException {
+	private static void putParentEntries(ZipOutputStream patchedZip, String name) throws IOException {
 		String[] split = name.split("/");
 		split = Arrays.copyOfRange(split, 0, split.length - 1);
 		StringBuilder sb = new StringBuilder();
 		for (String s : split) {
 			sb.append(s).append("/");
 			try {
-				patchedZip.putNextEntry(new ZipEntry(sb.toString()));
+				final ZipEntry zipEntry = new ZipEntry(sb.toString());
+				zipEntry.setCrc(new CRC32().getValue());
+				zipEntry.setSize(0);
+				zipEntry.setCompressedSize(0);
+				patchedZip.putNextEntry(zipEntry);
 			} catch (ZipException e) {
 				if (e.getMessage().startsWith("duplicate entry"))
 					continue;
 				throw e;
 			}
 		}
-		final ZipEntry entry = new ZipEntry(name);
-		patchedZip.putNextEntry(entry);
+		patchedZip.closeEntry();
 	}
 
 	private static String applyRelocations(String name) {
@@ -222,13 +283,18 @@ public class YatoclipPatcher {
 	private static class PatchData {
 
 		public final CompletableFuture<byte[]> patchedBytesFuture;
+		public final AtomicLong crc32Value = new AtomicLong(-1);
 		public final PatchesMetadata.PatchMetadata metadata;
-
 
 		private PatchData(CompletableFuture<byte[]> patchedBytesFuture, PatchesMetadata.PatchMetadata metadata) {
 			Objects.requireNonNull(patchedBytesFuture);
 			Objects.requireNonNull(metadata);
-			this.patchedBytesFuture = patchedBytesFuture.thenApply(Objects::requireNonNull);
+			this.patchedBytesFuture = patchedBytesFuture.thenApply(Objects::requireNonNull).thenApply(bytes -> {
+				final CRC32 crc32 = new CRC32();
+				crc32.update(bytes, 0, bytes.length);
+				crc32Value.set(crc32.getValue());
+				return bytes;
+			});
 			this.metadata = metadata;
 		}
 	}

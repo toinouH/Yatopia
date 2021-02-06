@@ -16,7 +16,7 @@ public class SpecialSourceLauncher {
 
 	static void setSpecialSourceJar(File specialSourceJar) {
 		synchronized (classLoader) {
-			System.err.println("Setting up SpecialSource: " + specialSourceJar);
+			// System.err.println("Setting up SpecialSource: " + specialSourceJar);
 			try {
 				classLoader.get().addURL(specialSourceJar.toURI().toURL());
 				mainClass.set(Yatoclip.getMainClass(specialSourceJar.toPath()));
@@ -29,7 +29,7 @@ public class SpecialSourceLauncher {
 	static void resetSpecialSourceClassloader() {
 		synchronized (classLoader) {
 			if(!classLoader.get().isLoaded) return;
-			System.err.println("Releasing SpecialSource");
+			// System.err.println("Releasing SpecialSource");
 			try {
 				classLoader.get().close();
 				classLoader.set(new SpecialSourceClassLoader(new URL[0], SpecialSourceLauncher.class.getClassLoader().getParent()));
@@ -43,7 +43,7 @@ public class SpecialSourceLauncher {
 	public static void runProcess(String... command) throws IOException {
 		if (!(command != null && command.length > 0)) throw new IllegalArgumentException();
 
-		System.err.println("Invoking SpecialSource with arguments: " + Arrays.toString(command));
+		// System.err.println("Invoking SpecialSource with arguments: " + Arrays.toString(command));
 
 		AtomicReference<Throwable> thrown = new AtomicReference<>(null);
 		final Thread thread = new Thread(() -> {
