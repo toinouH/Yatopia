@@ -19,7 +19,7 @@ index 657885cdaa086293f6b5aa6f3058acd16df0ba35..8724ad342bec7c733b3c825bd62dbfa5
  
                  Block.a(iblockdata, iblockdata1, generatoraccess, blockposition_mutableblockposition, i, j);
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 2a82ce2386424fa88698d046515ac476d9c4ed54..b6246b017db3483f6950c6b9ce5985abd98c7046 100644
+index f7aab27a6cb1199d74bf140caebfe396910aadea..2c20da05120d090274b9f02902899ecba35977d0 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -774,7 +774,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {

@@ -239,7 +239,7 @@ index 5b9e665938d45cea7cf6d18f577a05c663f03754..3579539e43b7c7332fcdaeb718463e26
          SystemUtils.shutdownServerThreadPool(); // Paper
          LOGGER.info("Closing Server");
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 56e95d06f6ea928f7f29fecec5f3e670eebc6ead..9be76194b8355738d3d140b8429beb5ce283d3f9 100644
+index 57b7466f0525a33f162edc08ef1eaa65bc853629..a21c6245ae57beab1894aa65bcfc89b08b191c72 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -1611,7 +1611,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {

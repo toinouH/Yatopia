@@ -78,7 +78,7 @@ index de9ea6770b8afc5e1020bef04ac6cca93b6b420c..21d0570a59240e955ff148bac0226b22
          if (this.bF) {
              this.bF = false;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 310733c7c277d25d64984aee5a3e98535ee59bf1..4865999cb73200b5686daf95ffcfae39615742a8 100644
+index 1c396a85e88e0c37c3c0ca8ac8f2437e77892f62..bdb6ee0409bf76ed8a2fc1644ddf55a2aef8390b 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -95,6 +95,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -373,10 +373,10 @@ index 0000000000000000000000000000000000000000..4904be939c7a4b1d1583fd7b6232c930
 +    }
 +}
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 5100460bab83cd75ac8dcdcc50ea663b1c486d00..b5d274c1fe214ea274057084bc40d6eeb618b21d 100644
+index 19a209cfc71e30edd3ff2d8c319df5e8b331e6cf..8cd8db287bb4110e17ec0da57ee1547ca1f221d7 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -862,6 +862,7 @@ public final class CraftServer implements Server {
+@@ -861,6 +861,7 @@ public final class CraftServer implements Server {
          org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
          com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
          com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
@@ -384,7 +384,7 @@ index 5100460bab83cd75ac8dcdcc50ea663b1c486d00..b5d274c1fe214ea274057084bc40d6ee
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
-@@ -897,6 +898,7 @@ public final class CraftServer implements Server {
+@@ -896,6 +897,7 @@ public final class CraftServer implements Server {
              world.spigotConfig.init(); // Spigot
              world.paperConfig.init(); // Paper
              world.tuinityConfig.init(); // Tuinity - Server Config
@@ -392,7 +392,7 @@ index 5100460bab83cd75ac8dcdcc50ea663b1c486d00..b5d274c1fe214ea274057084bc40d6ee
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
-@@ -915,6 +917,7 @@ public final class CraftServer implements Server {
+@@ -914,6 +916,7 @@ public final class CraftServer implements Server {
          reloadData();
          org.spigotmc.SpigotConfig.registerCommands(); // Spigot
          com.destroystokyo.paper.PaperConfig.registerCommands(); // Paper

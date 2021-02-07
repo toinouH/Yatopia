@@ -42,7 +42,7 @@ index 3ee8d31c453105eca7b96bede39a9ebbf40e1c2c..63c56d5994719bedf37af1669b0eee60
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
          this.setResourcePack(dedicatedserverproperties.resourcePack, this.ba());
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index c1a9aa32d8bb224236fad16758e80952ab1ba6c8..0ddca6cbd14c1c3a60d3a311ef728a4c6447af4a 100644
+index a198bdf26b60caea8c8b105cb0e4b82c0340fede..39280197902b330dd3d39c721cdef744a15b0550 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -271,6 +271,7 @@ public abstract class EntityLiving extends Entity {
@@ -75,10 +75,10 @@ index 2cd6d119a50445e6d5493b23d6dc9daab16d5536..c109578677394bada37e3df60413a996
          playerconnection.sendPacket(new PacketPlayOutAbilities(entityplayer.abilities));
          playerconnection.sendPacket(new PacketPlayOutHeldItemSlot(entityplayer.inventory.itemInHandIndex));
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 05612f20cd2881af363111789cf903c4baf5c9c8..61614215f30915356d31d188662d951f11ea5981 100644
+index 289ea917d3b5327e1c7dbffdb9ba171cc5052627..73287b03efce4f37cfd2b6d33a972ab609816a8b 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -864,6 +864,7 @@ public final class CraftServer implements Server {
+@@ -863,6 +863,7 @@ public final class CraftServer implements Server {
          com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
          net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
          de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami - Server Config

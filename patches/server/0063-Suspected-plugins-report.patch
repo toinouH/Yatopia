@@ -76,7 +76,7 @@ index 66cd8e53cf8ef2a143bff7aa2ee421a4466083b0..c87afd90990d7d22e314e83b42e8b806
                          close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
                          packet.onPacketDispatchFinish(player, null);
 diff --git a/src/main/java/net/minecraft/server/PlayerConnectionUtils.java b/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
-index e698dd22607b2b2c4068c5bfb03ac53eb5bac080..4e545e467042772d49ac82492694824576dcd139 100644
+index 7fff1b3e4eda519851b714502d33122c1e408009..41949bebe38bfa734f1d06df209ca842d1a42933 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
 @@ -45,6 +45,11 @@ public class PlayerConnectionUtils {
@@ -108,7 +108,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..7b9f83e63d0f9cd83a246be33af4ab91
                              ChatComponentText chatcomponenttext = new ChatComponentText("Internal server error");
  
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 37df1c7d37ada4759a19cc74b1156ca7fe4ac4ba..e81e3a8f3b998f6f510c9ae34c808c1f33d0fe98 100644
+index 7a41ad7a70004925fa9eb59d742c860fe847ee4a..d367f6a808a91e133c93022740ee9d720670d215 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -988,6 +988,10 @@ public abstract class World implements GeneratorAccess, AutoCloseable {

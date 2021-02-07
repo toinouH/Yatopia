@@ -63,10 +63,10 @@ index 5dfa0658838c4801cdf260eae8b98163f729e5af..35810f42d7a0cd50a4cbe90e8d698fe5
  
 diff --git a/src/main/java/com/tuinity/tuinity/chunk/PlayerChunkLoader.java b/src/main/java/com/tuinity/tuinity/chunk/PlayerChunkLoader.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..bebc79654a3f0752abf441549fb90038c58fc0cd
+index 0000000000000000000000000000000000000000..6665b0d715f4173da466049ad9105925f9af9ed2
 --- /dev/null
 +++ b/src/main/java/com/tuinity/tuinity/chunk/PlayerChunkLoader.java
-@@ -0,0 +1,886 @@
+@@ -0,0 +1,934 @@
 +package com.tuinity.tuinity.chunk;
 +
 +import com.destroystokyo.paper.util.misc.PlayerAreaMap;
@@ -130,6 +130,27 @@ index 0000000000000000000000000000000000000000..bebc79654a3f0752abf441549fb90038
 +        // last resort
 +        return Integer.compare(System.identityHashCode(p1), System.identityHashCode(p2));
 +    });
++
++    protected final TreeSet<PlayerLoaderData> chunkSendWaitQueue = new TreeSet<>((final PlayerLoaderData p1, final PlayerLoaderData p2) -> {
++        if (p1 == p2) {
++            return 0;
++        }
++
++        final int timeCompare = Long.compare(p1.nextChunkSendTarget, p2.nextChunkSendTarget);
++        if (timeCompare != 0) {
++            return timeCompare;
++        }
++
++        final int idCompare = Integer.compare(p1.player.getId(), p2.player.getId());
++
++        if (idCompare != 0) {
++            return idCompare;
++        }
++
++        // last resort
++        return Integer.compare(System.identityHashCode(p1), System.identityHashCode(p2));
++    });
++
 +
 +    // no throttling is applied below this VD for loading
 +
@@ -341,13 +362,18 @@ index 0000000000000000000000000000000000000000..bebc79654a3f0752abf441549fb90038
 +    }
 +
 +    protected int getMaxConcurrentChunkSends() {
-+        double config = TuinityConfig.maxConcurrentChunkSends;
-+        return config <= 0 ? (int)Math.round(-config * this.chunkMap.world.getPlayers().size()) : (int)config;
++        double config = TuinityConfig.playerMaxConcurrentChunkSends;
++        return Math.max(1, config <= 0 ? (int)Math.ceil(-config * this.chunkMap.world.getPlayers().size()) : (int)config);
 +    }
 +
 +    protected int getMaxChunkLoads() {
-+        double config = TuinityConfig.maxConcurrentChunkLoads;
-+        return (config <= 0 ? (int)Math.ceil(-config * MinecraftServer.getServer().getPlayerCount()) : (int)config) * 9;
++        double config = TuinityConfig.playerMaxConcurrentChunkLoads;
++        return Math.max(1, (config <= 0 ? (int)Math.ceil(-config * MinecraftServer.getServer().getPlayerCount()) : (int)config) * 9);
++    }
++
++    protected double getTargetSendRatePerPlayer() {
++        double config = TuinityConfig.playerTargetChunkSendRate;
++        return config <= 0 ? -config : (int)Math.ceil(-config / MinecraftServer.getServer().getPlayerCount());
 +    }
 +
 +    public void onChunkPlayerTickReady(final int chunkX, final int chunkZ) {
@@ -432,6 +458,7 @@ index 0000000000000000000000000000000000000000..bebc79654a3f0752abf441549fb90038
 +        loaderData.remove();
 +        this.chunkLoadQueue.remove(loaderData);
 +        this.chunkSendQueue.remove(loaderData);
++        this.chunkSendWaitQueue.remove(loaderData);
 +        synchronized (this.sendingChunkCounts) {
 +            final int count = this.sendingChunkCounts.removeInt(loaderData);
 +            if (count != 0) {
@@ -463,12 +490,31 @@ index 0000000000000000000000000000000000000000..bebc79654a3f0752abf441549fb90038
 +    protected static final AtomicInteger concurrentChunkSends = new AtomicInteger();
 +    protected final Reference2IntOpenHashMap<PlayerLoaderData> sendingChunkCounts = new Reference2IntOpenHashMap<>();
 +    private void trySendChunks() {
++        final long time = System.nanoTime();
++        // drain entries from wait queue
++        while (!this.chunkSendWaitQueue.isEmpty()) {
++            final PlayerLoaderData data = this.chunkSendWaitQueue.first();
++
++            if (data.nextChunkSendTarget > time) {
++                break;
++            }
++
++            this.chunkSendWaitQueue.pollFirst();
++
++            this.chunkSendQueue.add(data);
++        }
++
 +        if (this.chunkSendQueue.isEmpty()) {
 +            return;
 +        }
 +
 +        final int maxSends = this.getMaxConcurrentChunkSends();
++        final double sendRate = this.getTargetSendRatePerPlayer();
++        final long nextDeadline = (long)((1 / sendRate) * 1.0e9) + time;
 +        for (;;) {
++            if (this.chunkSendQueue.isEmpty()) {
++                break;
++            }
 +            final int currSends = concurrentChunkSends.get();
 +            if (currSends >= maxSends) {
 +                break;
@@ -497,8 +543,8 @@ index 0000000000000000000000000000000000000000..bebc79654a3f0752abf441549fb90038
 +                throw new IllegalStateException();
 +            }
 +
-+            // move to the back of the queue
-+            this.chunkSendQueue.add(data);
++            data.nextChunkSendTarget = nextDeadline;
++            this.chunkSendWaitQueue.add(data);
 +
 +            synchronized (this.sendingChunkCounts) {
 +                this.sendingChunkCounts.addTo(data, 1);
@@ -671,6 +717,8 @@ index 0000000000000000000000000000000000000000..bebc79654a3f0752abf441549fb90038
 +        protected int loadViewDistance = -1;
 +        protected int tickViewDistance = -1;
 +
++        protected long nextChunkSendTarget;
++
 +        public PlayerLoaderData(final EntityPlayer player, final PlayerChunkLoader loader) {
 +            this.player = player;
 +            this.loader = loader;
@@ -788,18 +836,18 @@ index 0000000000000000000000000000000000000000..bebc79654a3f0752abf441549fb90038
 +            final int loadViewDistance = Math.max(tickViewDistance + 1, this.loadViewDistance == -1 ? this.loader.getLoadDistance() : this.loadViewDistance);
 +            // send view cannot be greater-than load view
 +            final int clientViewDistance = this.getClientViewDistance();
-+            final int sendViewDistance = Math.min(loadViewDistance, this.sendViewDistance == -1 ? (!TuinityConfig.autoConfigureSendViewDistance || clientViewDistance == -1 ? this.loader.getSendDistance() : clientViewDistance + 1) : this.sendViewDistance);
++            final int sendViewDistance = Math.min(loadViewDistance, this.sendViewDistance == -1 ? (!TuinityConfig.playerAutoConfigureSendViewDistance || clientViewDistance == -1 ? this.loader.getSendDistance() : clientViewDistance + 1) : this.sendViewDistance);
 +
 +            final double posX = this.player.locX();
 +            final double posZ = this.player.locZ();
 +            final float yaw = MCUtil.normalizeYaw(this.player.yaw + 90.0f); // mc yaw 0 is along the positive z axis, but obviously this is really dumb - offset so we are at positive x-axis
 +
 +            // in general, we really only want to prioritise chunks in front if we know we're moving pretty fast into them.
-+            final boolean useLookPriority = this.player.getMot().magnitudeXZSquared() > LOOK_PRIORITY_SPEED_THRESHOLD ||
-+                    this.player.abilities.isFlying;
++            final boolean useLookPriority = TuinityConfig.playerFrustumPrioritisation && (this.player.getMot().magnitudeXZSquared() > LOOK_PRIORITY_SPEED_THRESHOLD ||
++                    this.player.abilities.isFlying);
 +
 +            // make sure we're in the send queue
-+            this.loader.chunkSendQueue.add(this);
++            this.loader.chunkSendWaitQueue.add(this);
 +
 +            if (
 +                // has view distance stayed the same?
@@ -954,23 +1002,30 @@ index 0000000000000000000000000000000000000000..bebc79654a3f0752abf441549fb90038
 +    }
 +}
 diff --git a/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java b/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java
-index ceeb515f4528551659598d9999917f8596e3eded..3e3425f8eab5e2f8eb1f2b42d4bc40d6a47c2110 100644
+index ceeb515f4528551659598d9999917f8596e3eded..334416e7805f7b43ea2eddac9c7109a301c7e0a4 100644
 --- a/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java
 +++ b/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java
-@@ -229,6 +229,18 @@ public final class TuinityConfig {
+@@ -229,6 +229,25 @@ public final class TuinityConfig {
          useNewLightEngine = TuinityConfig.getBoolean("use-new-light-engine", true);
      }
  
 +    public static int playerMinChunkLoadRadius;
-+    public static double maxConcurrentChunkSends;
-+    public static double maxConcurrentChunkLoads;
-+    public static boolean autoConfigureSendViewDistance;
++    public static double playerMaxConcurrentChunkSends;
++    public static double playerMaxConcurrentChunkLoads;
++    public static boolean playerAutoConfigureSendViewDistance;
++    public static boolean enableMC162253Workaround;
++    public static double playerTargetChunkSendRate;
++    public static boolean playerFrustumPrioritisation;
 +
 +    private static void newPlayerChunkManagement() {
 +        playerMinChunkLoadRadius = TuinityConfig.getInt("player-chunks.min-load-radius", 3);
-+        maxConcurrentChunkSends = TuinityConfig.getDouble("player-chunks.max-concurrent-sends", 12.0);
-+        maxConcurrentChunkLoads = TuinityConfig.getDouble("player-chunks.max-concurrent-loads", 5.0);
-+        autoConfigureSendViewDistance = TuinityConfig.getBoolean("player-chunks.autoconfig-send-distance", true);
++        playerMaxConcurrentChunkSends = TuinityConfig.getDouble("player-chunks.max-concurrent-sends", 3.0);
++        playerMaxConcurrentChunkLoads = TuinityConfig.getDouble("player-chunks.max-concurrent-loads", 5.0);
++        playerAutoConfigureSendViewDistance = TuinityConfig.getBoolean("player-chunks.autoconfig-send-distance", true);
++        // this costs server bandwidth. latest phosphor or starlight on the client fixes mc162253 anyways.
++        enableMC162253Workaround = TuinityConfig.getBoolean("player-chunks.enable-mc162253-workaround", false);
++        playerTargetChunkSendRate = TuinityConfig.getDouble("player-chunks.target-chunk-send-rate", -40.0);
++        playerFrustumPrioritisation = TuinityConfig.getBoolean("player-chunks.enable-frustum-priority", false);
 +    }
 +
      public static final class WorldConfig {
@@ -1038,7 +1093,7 @@ index ae07ea2a34f5cd82ce2eae523359cb7540065335..de6a57577e7317de2a48b26d9e619b35
              /*
               * If it's a new world, the first few chunks are generated inside
 diff --git a/src/main/java/net/minecraft/server/ChunkMapDistance.java b/src/main/java/net/minecraft/server/ChunkMapDistance.java
-index f1c686810fb4e9c05df45d664c93af73d17f0624..f6d67d18f2525105a218da23b931acd3d81c6858 100644
+index 7f3887b0894aca0f972922f434382646a6ad6174..5973c3a89ca5d57629376247a7636e694048a0fd 100644
 --- a/src/main/java/net/minecraft/server/ChunkMapDistance.java
 +++ b/src/main/java/net/minecraft/server/ChunkMapDistance.java
 @@ -33,7 +33,7 @@ public abstract class ChunkMapDistance {
@@ -1077,7 +1132,7 @@ index f1c686810fb4e9c05df45d664c93af73d17f0624..f6d67d18f2525105a218da23b931acd3
      }
  
      public void b(SectionPosition sectionposition, EntityPlayer entityplayer) {
-@@ -457,7 +457,7 @@ public abstract class ChunkMapDistance {
+@@ -458,7 +458,7 @@ public abstract class ChunkMapDistance {
          if (objectset == null || objectset.isEmpty()) { // Paper
              this.c.remove(i);
              //this.f.update(i, Integer.MAX_VALUE, false); // Paper - no longer used
@@ -1086,7 +1141,7 @@ index f1c686810fb4e9c05df45d664c93af73d17f0624..f6d67d18f2525105a218da23b931acd3
          }
  
      }
-@@ -476,7 +476,7 @@ public abstract class ChunkMapDistance {
+@@ -477,7 +477,7 @@ public abstract class ChunkMapDistance {
      }
  
      protected void setNoTickViewDistance(int i) { // Paper - force abi breakage on usage change
@@ -1095,7 +1150,7 @@ index f1c686810fb4e9c05df45d664c93af73d17f0624..f6d67d18f2525105a218da23b931acd3
      }
  
      public int b() {
-@@ -563,6 +563,7 @@ public abstract class ChunkMapDistance {
+@@ -564,6 +564,7 @@ public abstract class ChunkMapDistance {
          }
      }
  
@@ -1103,7 +1158,7 @@ index f1c686810fb4e9c05df45d664c93af73d17f0624..f6d67d18f2525105a218da23b931acd3
      class c extends ChunkMapDistance.b {
  
          private int e = 0;
-@@ -777,6 +778,7 @@ public abstract class ChunkMapDistance {
+@@ -778,6 +779,7 @@ public abstract class ChunkMapDistance {
              return i <= this.e - 2;
          }
      }
@@ -1304,7 +1359,7 @@ index ac82f1791ce07e9a23cf97ca34974ab25e26be46..22ec19fa5b1624bdc8e1066e206ba4cc
              }
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index a42571cfd2c9c80df27e59db832cb64c2a64e141..fdf30554bfe442f846a634c80a4835db1e76dbbb 100644
+index a42571cfd2c9c80df27e59db832cb64c2a64e141..b5af1cccb7efc574fda08fa88fd570d85b478b8b 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -180,20 +180,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
@@ -1519,17 +1574,46 @@ index a42571cfd2c9c80df27e59db832cb64c2a64e141..fdf30554bfe442f846a634c80a4835db
                  players.add(player);
              }
          }
-@@ -2289,8 +2203,8 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+@@ -2263,6 +2177,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+             apacket[1] = new PacketPlayOutLightUpdate(chunk.getPos(), this.lightEngine, true);
+ 
+             // Paper start - Fix MC-162253
++            if (com.tuinity.tuinity.config.TuinityConfig.enableMC162253Workaround) { // Tuinity - hide behind config option, this logic has undesirable network effects
+             final int lightMask = getLightMask(chunk);
+             int i = 1;
+             for (int x = -1; x <= 1; x++) {
+@@ -2287,10 +2202,12 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+                     apacket[i] = new PacketPlayOutLightUpdate(new ChunkCoordIntPair(chunk.getPos().x + x, chunk.getPos().z + z), lightEngine, updateLightMask, 0, true);
+                 }
              }
++        } // Tuinity - hide behind config option, this logic has undesirable network effects
          }
  
 -        final int viewDistance = playerViewDistanceBroadcastMap.getLastViewDistance(entityplayer);
 -        final long lastPosition = playerViewDistanceBroadcastMap.getLastCoordinate(entityplayer);
++        if (com.tuinity.tuinity.config.TuinityConfig.enableMC162253Workaround) { // Tuinity - hide behind config option, this logic has undesirable network effects
 +        final int viewDistance = this.playerChunkManager.broadcastMap.getLastViewDistance(entityplayer); // Tuinity - replace player chunk loader
 +        final long lastPosition = this.playerChunkManager.broadcastMap.getLastCoordinate(entityplayer); // Tuinity - replace player chunk loader
  
          int j = 1;
          for (int x = -1; x <= 1; x++) {
+@@ -2315,6 +2232,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+                 entityplayer.playerConnection.sendPacket(packet);
+             }
+         }
++        } // Tuinity - hide behind config option, this logic has undesirable network effects
+         // Paper end - Fix MC-162253
+ 
+         entityplayer.a(chunk.getPos(), apacket[0], apacket[1]);
+@@ -2501,7 +2419,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+                         ChunkCoordIntPair chunkcoordintpair = new ChunkCoordIntPair(this.tracker.chunkX, this.tracker.chunkZ);
+                         PlayerChunk playerchunk = PlayerChunkMap.this.getVisibleChunk(chunkcoordintpair.pair());
+ 
+-                        if (playerchunk != null && playerchunk.getSendingChunk() != null) { // Paper - no-tick view distance
++                        if (playerchunk != null && playerchunk.getSendingChunk() != null && PlayerChunkMap.this.playerChunkManager.isChunkSent(entityplayer, MathHelper.floor(this.tracker.locX()) >> 4, MathHelper.floor(this.tracker.locZ()) >> 4)) { // Paper - no-tick view distance // Tuinity - don't broadcast in chunks the player hasn't received
+                             flag1 = PlayerChunkMap.b(chunkcoordintpair, entityplayer, false) <= PlayerChunkMap.this.viewDistance;
+                         }
+                     }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
 index eabd1aa2b740bcb6db40be300cd6daf59674fa3f..a29545bbfe1251c0c6adbddcb541f54d80ba1ad2 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
@@ -1579,7 +1663,7 @@ index 5af554870bcf36e47aef43b966b141b9eda6c4d5..7190316a38e6b4edf5501bfedbb12be7
          return new Vec3D((double) baseblockposition.getX() + 0.5D, (double) baseblockposition.getY() + 0.5D, (double) baseblockposition.getZ() + 0.5D);
      }
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 28ee325fcc8b50397768363403823f2e3391d8c8..310733c7c277d25d64984aee5a3e98535ee59bf1 100644
+index 93c0c3376c3cb2fe416c8ae3e740ffda5f985b78..1c396a85e88e0c37c3c0ca8ac8f2437e77892f62 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -515,7 +515,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -1629,10 +1713,10 @@ index f34e1570052eac83fb3e03b3e361d8d4f451abac..24d174cd346f101957fef087ff2dbe57
      // Spigot start
      private final Spigot spigot = new Spigot()
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index 7c18b22c7b93b6ca1189e481dde17476797b8fd5..b5d346e79a7ee4eb9d02fac84dc953db2a6c766d 100644
+index ed7b91bf703c7e7d5cbe323d9ab1c299c33ebad1..9541a2fdc8d8acc521d04216b9e9f5c628d09f48 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-@@ -2059,15 +2059,70 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+@@ -2058,15 +2058,70 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
          }
      }
  
