@@ -27,12 +27,12 @@ index 4b171a2a60e24947e884f8988920f335bd99a471..5431ec9e8794397b3082a1eb49f82767
              String hostName = "BrokenHost";
              try {
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 3ee8d31c453105eca7b96bede39a9ebbf40e1c2c..63c56d5994719bedf37af1669b0eee604633cd89 100644
+index ca3d9dbcbeeb5059a942cae1a5020f0bcc59ac9c..9c3f16cc4e424fa2293c9b795960110b36b55df4 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -180,6 +180,10 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
-         // Paper end
+@@ -181,6 +181,10 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
          com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
+         gg.airplane.AirplaneConfig.load(); // Airplane - config
  
 +        // Yatopia start
 +        // Configuration moved to org.bukkit.craftbukkit.Main

@@ -5,7 +5,7 @@ Subject: [PATCH] Option for simpler Villagers
 
 
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index eef51f8e5734b897164ca9514e7b49b2678416e6..2745cd0d98cfcf25a5304fa8ae0903028a283b25 100644
+index 5fc57e2e2afe383ddc9b6d4db714a678c881fa77..02d5f70e7c437fee1bfd4743b2944e3282633350 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -31,6 +31,7 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
@@ -78,7 +78,7 @@ index eef51f8e5734b897164ca9514e7b49b2678416e6..2745cd0d98cfcf25a5304fa8ae090302
          BehaviorController<EntityVillager> behaviorcontroller = this.cK().a(dynamic);
  
          this.a(behaviorcontroller);
-@@ -212,10 +252,39 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -212,12 +252,41 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
      // Purpur end
  
@@ -104,6 +104,8 @@ index eef51f8e5734b897164ca9514e7b49b2678416e6..2745cd0d98cfcf25a5304fa8ae090302
 +    }
 +    // Yatopia end
 +
+     private int behaviorTick = 0;
+ 
      @Override
      protected void mobTick() { mobTick(false); }
      protected void mobTick(boolean inactive) {
@@ -118,7 +120,7 @@ index eef51f8e5734b897164ca9514e7b49b2678416e6..2745cd0d98cfcf25a5304fa8ae090302
          // Purpur start
          if (world.purpurConfig.villagerLobotomizeEnabled) inactive = inactive || isLobotomized();
          boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
-@@ -338,6 +407,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -344,6 +413,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          this.fl();
      }
  
@@ -126,7 +128,7 @@ index eef51f8e5734b897164ca9514e7b49b2678416e6..2745cd0d98cfcf25a5304fa8ae090302
      private void fl() {
          Iterator iterator = this.getOffers().iterator();
  
-@@ -412,6 +482,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -418,6 +488,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          return this.fn() && this.fm();
      }
  
@@ -134,7 +136,7 @@ index eef51f8e5734b897164ca9514e7b49b2678416e6..2745cd0d98cfcf25a5304fa8ae090302
      private void fo() {
          int i = 2 - this.bD;
  
-@@ -644,6 +715,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -650,6 +721,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
  
      private void a(Entity entity) {
@@ -142,7 +144,7 @@ index eef51f8e5734b897164ca9514e7b49b2678416e6..2745cd0d98cfcf25a5304fa8ae090302
          if (this.world instanceof WorldServer) {
              Optional<List<EntityLiving>> optional = this.bg.getMemory(MemoryModuleType.VISIBLE_MOBS);
  
-@@ -660,6 +732,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -666,6 +738,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
  
      public void a(MemoryModuleType<GlobalPos> memorymoduletype) {

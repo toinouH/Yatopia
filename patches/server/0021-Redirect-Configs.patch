@@ -39,10 +39,10 @@ index 15aa603a771c327879a4088609850fb86c6347bd..553d6fafbcabafeb008fcf5b60adb8d1
          for (final Method method : clazz.getDeclaredMethods()) {
              if (method.getReturnType() != void.class || method.getParameterCount() != 0 ||
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 63c56d5994719bedf37af1669b0eee604633cd89..02de7205bf2e69649614a7a5c513787379355171 100644
+index 9c3f16cc4e424fa2293c9b795960110b36b55df4..c2f749e73cd9e175b019ed720a5021f411213624 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -183,7 +183,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -184,7 +184,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
          // Yatopia start
          // Configuration moved to org.bukkit.craftbukkit.Main
          // Yatopia end

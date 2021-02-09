@@ -5,10 +5,10 @@ Subject: [PATCH] Add nspt command
 
 
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 02de7205bf2e69649614a7a5c513787379355171..8e7605d80da67c9b2a7b1643d6589a44e0955914 100644
+index c2f749e73cd9e175b019ed720a5021f411213624..7ae2083e53d9706409e667fdc4174fec54838945 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -182,6 +182,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -183,6 +183,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
  
          // Yatopia start
          // Configuration moved to org.bukkit.craftbukkit.Main
