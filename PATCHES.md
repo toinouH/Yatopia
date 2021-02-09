@@ -183,6 +183,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix vanilla command permission handler      | William Blake Galbreath |  |
 | server |  Flying squids! Oh my!      | William Blake Galbreath |  |
+| server |  Force world save      | ishland |  |
 | server |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
 | api |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
