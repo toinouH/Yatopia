@@ -20,7 +20,6 @@ This is an overview over all patches that are currently used.
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add IntelliJ IDEA runnable      | Zoe |  |
-| server |  Add JsonList save timings      | Ivan Pekov |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add StructureGenerateEvent      | Nahuel | Mariell Hoversholm |
@@ -37,6 +36,7 @@ This is an overview over all patches that are currently used.
 | api |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
 | server |  Add demo command      | BillyGalbreath |  |
 | server |  Add enderman and creeper griefing controls      | William Blake Galbreath |  |
+| server |  Add ghast allow-griefing option      | BillyGalbreath |  |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add mobGriefing bypass to everything affected      | Encode42 |  |
@@ -63,6 +63,8 @@ This is an overview over all patches that are currently used.
 | server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Add timings for Pathfinder      | MrIvanPlays |  |
 | server |  Add twisting and weeping vines growth rates      | BillyGalbreath |  |
+| server |  Add unsafe Entity serialization API      | Mariell Hoversholm |  |
+| api |  Add unsafe Entity serialization API      | Mariell Hoversholm |  |
 | server |  Add vindicator johnny spawn chance      | William Blake Galbreath |  |
 | server |  Add wither skeleton takes wither damage option      | William Blake Galbreath |  |
 | server |  Advancement API      | William Blake Galbreath |  |
@@ -103,6 +105,7 @@ This is an overview over all patches that are currently used.
 | server |  Config migration: climbing should not bypass cramming      | jmp |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Config to allow Note Block sounds when blocked      | Encode42 |  |
+| server |  Config to always tame in Creative      | Encode42 |  |
 | server |  Config to use infinity bows without arrows      | Encode42 |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
 | server |  Configurable TPS Catchup      | William Blake Galbreath |  |
@@ -156,6 +159,7 @@ This is an overview over all patches that are currently used.
 | server |  EMC - Configurable disable give dropping      | Aikar |  |
 | server |  EMC - MonsterEggSpawnEvent      | Aikar |  |
 | api |  EMC - MonsterEggSpawnEvent      | Aikar |  |
+| server |  End crystal explosion options      | Ben Kerllenevich |  |
 | server |  End gateway should check if entity can use portal      | William Blake Galbreath |  |
 | server |  Ender dragon always drop full exp      | William Blake Galbreath |  |
 | server |  Ensure pools create daemon threads      | Ivan Pekov |  |
@@ -248,13 +252,13 @@ This is an overview over all patches that are currently used.
 | server |  New nbt cache      | Hugo Planque | ishland |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
-| server |  Optimise EntityInsentient#checkDespawn      | Spottedleaf |  |
 | server |  Optimise WorldServer#notify      | Spottedleaf |  |
 | server |  Optimise chunk tick iteration      | Spottedleaf |  |
-| server |  Optimise closest entity lookup used by AI goals      | Spottedleaf |  |
+| server |  Optimise closest entity lookup      | Spottedleaf |  |
 | server |  Optimise collision checking in player move packet handling      | Spottedleaf |  |
 | server |  Optimise entity hard collision checking      | Spottedleaf |  |
 | server |  Optimise general POI access      | Spottedleaf |  |
+| server |  Optimise nearby player lookups      | Spottedleaf |  |
 | server |  Optimise non-flush packet sending      | Spottedleaf |  |
 | server |  Optimise tab complete      | Spottedleaf |  |
 | server |  Optimised hallowen checker      | Ivan Pekov |  |
@@ -263,7 +267,6 @@ This is an overview over all patches that are currently used.
 | server |  Optimize Villagers      | Ivan Pekov |  |
 | server |  Optimize advancement loading      | Ivan Pekov |  |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
-| server |  Optimize random calls in chunk ticking      | Paul Sauve |  |
 | server |  Optimize some stuff in WorldServer ticking      | MrIvanPlays |  |
 | server |  Optimize whitelist command for multiple additions / removals      | Ivan Pekov |  |
 | server |  Option for Villager Clerics to farm Nether Wart      | jmp |  |
@@ -275,7 +278,6 @@ This is an overview over all patches that are currently used.
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
 | server |  PaperPR - Config option for Piglins guarding chests      | jmp |  |
 | server |  PaperPR - Fix username connecting with no texture being      | Camotoy |  |
-| api |  PaperPR - PlayerItemCooldownEvent      | KennyTV |  |
 | server |  Per World Spawn Limits      | Chase Whipple |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | api |  Per player viewdistances      | Spottedleaf |  |
@@ -295,7 +297,6 @@ This is an overview over all patches that are currently used.
 | api |  PlayerSetSpawnerTypeWithEggEvent      | William Blake Galbreath |  |
 | server |  Players should not cram to death      | William Blake Galbreath |  |
 | server |  Populator seed controls      | Spottedleaf |  |
-| server |  Port hydrogen      | JellySquid |  |
 | server |  Preload ProtocolLib EnumWrappers      | ishland |  |
 | server |  Prevent light queue overfill when no players are online      | Spottedleaf |  |
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
@@ -303,7 +304,6 @@ This is an overview over all patches that are currently used.
 | server |  Properly handle cancellation of projectile hit event      | Spottedleaf |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | api |  Purpur config files      | William Blake Galbreath |  |
-| server |  Queue lighting update only once      | Paul Sauve |  |
 | server |  Rabbit naturally spawn toast and killer      | William Blake Galbreath |  |
 | api |  Rabid Wolf API      | Encode42 |  |
 | server |  Raid cooldown setting      | jmp |  |
@@ -315,6 +315,7 @@ This is an overview over all patches that are currently used.
 | server |  Reduce allocs &amp; improve perf of StructureManager      | Paul Sauve |  |
 | server |  Reduce chunk loading &amp; lookups      | Paul Sauve |  |
 | server |  Reduce iterator allocation from chunk gen      | Spottedleaf |  |
+| server |  Reduce memory allocations      | Paul Sauve |  |
 | server |  Reduce pathfinder branches      | Spottedleaf |  |
 | server |  Reduce projectile chunk loading      | Paul Sauve |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
@@ -328,6 +329,7 @@ This is an overview over all patches that are currently used.
 | server |  Rewrite the light engine      | Spottedleaf |  |
 | server |  Ridables      | William Blake Galbreath |  |
 | api |  Ridables      | William Blake Galbreath |  |
+| server |  Send full pos packets for hard colliding entities      | Spottedleaf |  |
 | server |  Separate lookup locking from state access in UserCache      | Spottedleaf |  |
 | server |  Set name visible when using a Name Tag on an Armor Stand      | jmp |  |
 | server |  Short enderman height      | William Blake Galbreath |  |

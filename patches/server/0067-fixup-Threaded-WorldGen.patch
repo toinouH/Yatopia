@@ -147,10 +147,10 @@ index 9db252b1ae864e00673bbb154539f244260f07ce..e0048b0bdf9b0c78c812dc111f451faf
      }
  }
 diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
-index 22ec19fa5b1624bdc8e1066e206ba4ccf05dd6e3..7a37bc0800bfd9e402b9eb983875f3e9c92e179b 100644
+index 13e8bfa62cd8dc1f65b07d7f617e02aec4b83d82..f9e5378a564437642fdbcb3a1199f2e90892ec49 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunk.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunk.java
-@@ -555,6 +555,7 @@ public class PlayerChunk {
+@@ -559,6 +559,7 @@ public class PlayerChunk {
          return this.ticketLevel;
      }
  
@@ -159,10 +159,10 @@ index 22ec19fa5b1624bdc8e1066e206ba4ccf05dd6e3..7a37bc0800bfd9e402b9eb983875f3e9
          return this.n;
      }
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index a21c6245ae57beab1894aa65bcfc89b08b191c72..eaa506657755be52481b2a1392a64c3c39ba192f 100644
+index 3d6fb33ccf9c907f362446f3edff75152fdf28e1..b28ee34dc03e75fc522f5f72f291fa64fa68062c 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -1119,9 +1119,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1128,9 +1128,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
                          if (chunkstatus == ChunkStatus.LIGHT) {
                              completablefuture1 = this.b(playerchunk, chunkstatus);
                          } else {
@@ -174,7 +174,7 @@ index a21c6245ae57beab1894aa65bcfc89b08b191c72..eaa506657755be52481b2a1392a64c3c
                          }
  
                          this.worldLoadListener.a(chunkcoordintpair, chunkstatus);
-@@ -1232,9 +1232,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1241,9 +1241,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          return completablefuture.thenComposeAsync((either) -> {
              return either.map((list) -> { // Paper - Shut up.
                  try {

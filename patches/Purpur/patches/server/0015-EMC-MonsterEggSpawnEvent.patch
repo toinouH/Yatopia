@@ -5,10 +5,10 @@ Subject: [PATCH] EMC - MonsterEggSpawnEvent
 
 
 diff --git a/src/main/java/net/minecraft/server/EntityTypes.java b/src/main/java/net/minecraft/server/EntityTypes.java
-index 1138981aebb7fbb3f3839dcd221e3ee850ab4456..37b984a5b6c1c6e146e1c4b0947d1e39a051cfbb 100644
+index 36f572990a0c08f21df6f4dc40c5878b669ca00c..ed1e0bd379b95bc090c7cdf57de70ec9cc2dac5a 100644
 --- a/src/main/java/net/minecraft/server/EntityTypes.java
 +++ b/src/main/java/net/minecraft/server/EntityTypes.java
-@@ -187,19 +187,46 @@ public class EntityTypes<T extends Entity> {
+@@ -187,17 +187,31 @@ public class EntityTypes<T extends Entity> {
  
      @Nullable
      public Entity spawnCreature(WorldServer worldserver, @Nullable ItemStack itemstack, @Nullable EntityHuman entityhuman, BlockPosition blockposition, EnumMobSpawn enummobspawn, boolean flag, boolean flag1) {
@@ -39,6 +39,11 @@ index 1138981aebb7fbb3f3839dcd221e3ee850ab4456..37b984a5b6c1c6e146e1c4b0947d1e39
 +    @Nullable
 +    public T spawnCreature(WorldServer worldserver, @Nullable ItemStack itemstack, @Nullable NBTTagCompound nbttagcompound, @Nullable IChatBaseComponent ichatbasecomponent, @Nullable EntityHuman entityhuman, BlockPosition blockposition, EnumMobSpawn enummobspawn, boolean flag, boolean flag1, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason spawnReason) {
 +        // Purpur end
+         // Paper start - Call PreCreatureSpawnEvent
+         org.bukkit.entity.EntityType type = org.bukkit.entity.EntityType.fromName(EntityTypes.getName(this).getKey());
+         if (type != null) {
+@@ -214,6 +228,19 @@ public class EntityTypes<T extends Entity> {
+         // Paper end
          T t0 = this.createCreature(worldserver, nbttagcompound, ichatbasecomponent, entityhuman, blockposition, enummobspawn, flag, flag1);
  
 +        // Purpur start
