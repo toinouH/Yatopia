@@ -7,7 +7,7 @@ A massive improvement to world generation.
 This patch actually schedules chunk status upgrade later rather than doing it right away.
 
 diff --git a/pom.xml b/pom.xml
-index 9402ec96f626e5e4f36f7dd678454f9efeb7e254..27c351ea6a2c40de41976351d6a9d3ef49389fc1 100644
+index f6c60768c0159c6f433bf8825b94ced138c8ff9c..dec66c63271439e27dfae84a128afe9ac450f406 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -182,6 +182,12 @@
@@ -76,7 +76,7 @@ index 6223d1d9048e31fb10cec7f485d1556aec2c7d5e..01caa55482aa963dfe7726e652a1157a
      public ChunkGenerator(WorldChunkManager worldchunkmanager, StructureSettings structuresettings) {
          this(worldchunkmanager, worldchunkmanager, structuresettings, 0L);
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-index 347e17b4cde6c5d062e2369a6e425ce9b85627fb..1ad567a0a00e4f530c572afea3acfc8340a6dc32 100644
+index f99e4399b5f47ca09708ff8696c01879541650c6..0b5a4a49f0a81e75da7ef0085c79a4fcc054df86 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
 @@ -11,6 +11,7 @@ import java.util.Collections;
@@ -379,10 +379,10 @@ index d98ac030e205dbb1512ef6b837e2f3fdd208e231..451ea5b703d01664942899ca62cf789e
      }
  }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 782c79ab271f0a9da189a2f1b52902bed38c5676..0df1849d24999105e727c7d888a83075709fe331 100644
+index 68fbbcac7b6b2f24a42c3a63825f940e52f6f51a..3c2abebe3e9d2fd5f54776839744f674a8d3a8e9 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -2683,28 +2683,26 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -2685,28 +2685,26 @@ public class WorldServer extends World implements GeneratorAccessSeed {
  
          // Paper start
          BlockPosition blockposition1 = blockposition.immutableCopy();
